@@ -6,7 +6,6 @@ RUN apt-get update && apt-get install -y grub-pc
 
 # 添加preseed参数到内核命令行
 RUN sed -i 's|GRUB_CMDLINE_LINUX_DEFAULT=.*|GRUB_CMDLINE_LINUX_DEFAULT="auto=true priority=critical preseed/file=/cdrom/preseed.cfg"|' /etc/default/grub
-RUN update-grub
 
 # 创建一个preseed文件，并放在/cdrom目录下
 RUN mkdir -p /cdrom
@@ -33,3 +32,6 @@ RUN echo "ubuntu-session" > /usr/share/xsessions/default.desktop
 
 # 启动novnc服务
 CMD ["/usr/bin/novnc_server"]
+
+# 更新grub引导加载器并指定root设备为overlay
+RUN update-grub --boot-directory=/boot --root-directory=overlay
