@@ -1,0 +1,24 @@
+# 使用ubuntu作为基础镜像
+FROM ubuntu
+
+# 更新软件源并安装所需的软件包
+RUN apt-get update && apt-get install -y ubuntu-desktop novnc firefox
+
+# 配置默认用户为root用户，并设置其密码为luo
+USER root
+RUN echo "root:luo" | chpasswd
+
+# 配置默认语言为中文
+ENV LANG zh_CN.UTF-8
+
+# 设置novnc的密码为luo和端口号为8900，并暴露8900端口
+RUN echo "luo" > /etc/novnc.pwd
+ENV NOVNC_PORT 8900
+EXPOSE 8900
+
+# 设置ubuntu桌面为默认桌面
+ENV DEBIAN_FRONTEND noninteractive
+RUN echo "ubuntu-session" > /usr/share/xsessions/default.desktop
+
+# 启动novnc服务
+CMD ["/usr/bin/novnc_server"]
