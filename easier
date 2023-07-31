@@ -4,16 +4,16 @@ FROM ubuntu
 # 更新软件源并安装grub
 RUN apt-get update && apt-get install -y grub-pc
 
-# 创建一个自动安装配置文件，并通过cloud-init提供给安装程序
-RUN mkdir -p /var/lib/cloud/seed/nocloud-net/
-RUN echo "#cloud-config\nautoinstall:\n  version: 1\n  locale: zh_CN.UTF-8\n  keyboard:\n    layout: cn\n    variant: ''\n  network:\n    network:\n      version: 2\n      ethernets:\n        enp0s25:\n          dhcp4: yes\n  identity:\n    hostname: ubuntu\n    username: root\n    password: \$6\$exDY1mhS4KUYCE/2\$zmn9ToZwTKLhCw.b4/b.ZRTIZM30JZ4QrOQ2aOXJ8yk96xpcCof0kxKwuX1kqLG/ygbJ1f8wxED22bTL4F46P0\n  storage:\n    layout:\n      name: lvm\n  late-commands:\n    - echo 'root ALL=(ALL) NOPASSWD:ALL' > /target/etc/sudoers.d/root\n    - curtin in-target --target=/target -- chpasswd <<< \"root:luo\"\n    - curtin in-target --target=/target -- update-grub" > /var/lib/cloud/seed/nocloud-net/user-data
-RUN echo "instance-id: ubuntu-autoinstall\nlocal-hostname: ubuntu-autoinstall" > /var/lib/cloud/seed/nocloud-net/meta-data
+# 添加preseed参数到内核命令行
+RUN sed -i 's/GRUB_CMDLINE_LINUX_DEFAULT=.*/GRUB_CMDLINE_LINUX_DEFAULT="auto=true priority=critical preseed/file=/cdrom/preseed.cfg"/' /etc/default/grub
+RUN update-grub
 
-# 添加autoinstall参数到内核命令行
-RUN sed -i 's/GRUB_CMDLINE_LINUX_DEFAULT=.*/GRUB_CMDLINE_LINUX_DEFAULT="autoinstall"/' /etc/default/grub
+# 创建一个preseed文件，并放在/cdrom目录下
+RUN mkdir -p /cdrom
+RUN echo "### Localization d-i debian-installer/locale string zh_CN.UTF-8 d-i console-setup/ask_detect boolean false d-i keyboard-configuration/layout select Chinese d-i keyboard-configuration/variant select Chinese ### Network configuration d-i netcfg/choose_interface select auto ### Mirror settings d-i mirror/country string manual d-i mirror/http/hostname string archive.ubuntu.com d-i mirror/http/directory string /ubuntu d-i mirror/http/proxy string ### Account setup d-i passwd/root-login boolean true d-i passwd/root-password password luo d-i passwd/root-password-again password luo ### Clock and time zone setup d-i clock-setup/utc boolean true d-i time/zone string Asia/Shanghai ### Partitioning d-i partman-auto/method string lvm d-i partman-lvm/device_remove_lvm boolean true d-i partman-lvm/device_remove_lvm_span boolean true d-i partman-lvm/confirm boolean true d-i partman-lvm/confirm_nooverwrite boolean true d-i partman-auto-lvm/guided_size string max d-i partman-auto/choose_recipe select atomic ### Base system installation tasksel tasksel/first multiselect ubuntu-desktop ### Boot loader installation d-i grub-installer/only_debian boolean true ### Finishing up the installation d-i finish-install/reboot_in_progress note" > /cdrom/preseed.cfg
 
 # 安装其他所需的软件包
-RUN apt-get install -y ubuntu-desktop novnc firefox
+RUN apt-get install -y novnc firefox
 
 # 配置默认用户为root用户，并设置其密码为luo
 USER root
