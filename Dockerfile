@@ -1,6 +1,6 @@
 FROM debian
 RUN apt update
-RUN DEBIAN_FRONTEND=noninteractive apt install sudo qemu-kvm *zenhei* xz-utils dbus-x11 curl firefox-esr gnome-system-monitor mate-system-monitor  git xfce4 xfce4-terminal tightvncserver wget   -y
+RUN DEBIAN_FRONTEND=noninteractive apt install -y sudo locales tzdata qemu-kvm *zenhei* xz-utils dbus-x11 curl firefox-esr gnome-system-monitor mate-system-monitor  git xfce4 xfce4-terminal tightvncserver wget   -y
 ENV TZ=Asia/Shanghai
 RUN sed -i -e 's/# zh_CN.UTF-8 UTF-8/zh_CN.UTF-8 UTF-8/' /etc/locale.gen && \
     dpkg-reconfigure --frontend=noninteractive locales && \
